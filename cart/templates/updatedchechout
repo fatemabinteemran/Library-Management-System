@@ -1,0 +1,192 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #7b93bd 0%, #a083ac 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .checkout-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            width: 600px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: center;
+        }
+
+        .checkout-header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .checkout-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .checkout-item:last-child {
+            border-bottom: none;
+        }
+
+        .checkout-item-details {
+            flex: 1;
+            text-align: left;
+            margin-left: 10px;
+        }
+
+        .checkout-item-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .checkout-item-price, .checkout-item-quantity {
+            color: #45a049;
+        }
+
+        .checkout-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .checkout-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-confirm {
+            background-color: #4CAF50;
+        }
+
+        .btn-confirm:hover {
+            background-color: #45a049;
+        }
+
+        .btn-cancel {
+            background-color: #ff6347;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e53e3e;
+        }
+
+        .checkout-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-label {
+            font-weight: bold;
+        }
+
+        .form-input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-submit {
+            align-self: flex-end;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-submit:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <h1 class="checkout-header">Checkout</h1>
+        
+        <div class="checkout-items">
+            <h2>Your Cart</h2>
+            {% if cart_items %}
+                <ul>
+                    {% for item in cart_items %}
+                        <li>
+                            <p>{{ item.name }} - {{ item.price }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class="checkout-total">Total: {{ total }}</p>
+            {% else %}
+                <p>Your cart is empty!!</p>
+            {% endif %}
+        </div>
+
+        <form action="{% url 'checkout' %}" method="post" class="checkout-form">
+            {% csrf_token %}
+            
+            <div class="form-field">
+                <label for="fullname" class="form-label">Full Name</label>
+                <input type="text" id="fullname" name="fullname" class="form-input" required>
+            </div>
+            
+            <div class="form-field">
+                <label for="address" class="form-label">Address</label>
+                <textarea id="address" name="address" class="form-input" rows="3" required></textarea>
+            </div>
+            
+            <div class="form-field">
+                <label for="contact" class="form-label">Contact Number</label>
+                <input type="text" id="contact" name="contact" class="form-input" required>
+            </div>
+
+            <button type="submit" class="form-submit">Place Order</button>
+        </form>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,216 @@
+{% load cart_extras %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart Summary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #7b93bd 0%, #a083ac 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .cart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .cart-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .cart-total {
+            font-size: 18px;
+            color: #45a049;
+        }
+        
+        .cart-item {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+            gap: 10px;
+        }
+        
+        .cart-item img {
+            width: 80px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .cart-item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .cart-item-title {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .cart-item-price {
+            color: #45a049;
+            font-weight: bold;
+        }
+        
+        .cart-item-remove {
+            color: #ff6347;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .cart-item-remove:hover {
+            color: #e53e3e;
+        }
+        
+        .form {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form .col-md-2 {
+            margin-right: 10px;
+        }
+        
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .checkout-btn, .update-cart, .delete-product {
+            flex: 1;
+            padding: 12px;
+            color: white;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .checkout-btn {
+            background-color: #b440f3db;
+        }
+        
+        .checkout-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .update-cart {
+            background-color: #4CAF50;
+        }
+        
+        .update-cart:hover {
+            background-color: #45a049;
+        }
+        
+        .delete-product {
+            background-color: #ff6347;
+        }
+        
+        .delete-product:hover {
+            background-color: #e53e3e;
+        }
+        
+        @media (min-width: 768px) {
+            .cart-container {
+                width: 600px;
+            }
+            
+            .cart-item img {
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cart-container">
+        <div class="cart-header">
+            <div class="cart-title">Shopping Cart</div>
+        </div>
+        {% if cart_products %}
+            {% for product in cart_products %}
+                <div class="cart-item">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="Product Image">
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">{{ product.name }}</div>
+                        <div class="cart-item-price">${{ product.price }}</div>
+                        <div class="cart-item-quantity">Quantity: {{ quantities|get_item:product.id }}</div>
+                    </div>
+                    <button type="button" data-index="{{ product.id }}" class="delete-product">Remove</button>
+                </div>
+            {% endfor %}
+            <div class="buttons-container">
+                <button class="checkout-btn"><i class="fas fa-shopping-cart"></i> Proceed to Checkout</button>
+            </div>
+            <h3>Total: ${{ totals }}</h3>
+        {% else %}
+            <p>There is nothing in your Cart!!</p>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+        jQuery(document).ready(function() {
+            jQuery('.delete-product').on('click', function(e) {
+                e.preventDefault();
+                jQuery.ajax({
+                    type: 'POST',
+                    url: '{% url "cart_delete" %}',
+                    data: {
+                        product_id: jQuery(this).data('index'),
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        action: 'post'
+                    },
+                    success: function(json) {
+                        location.reload();
+                    },
+                    error: function(xhr, errmsg, err) {
+                        console.log('Error:', errmsg);
+                        alert('There was an error removing the product from the cart.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
