@@ -1,0 +1,110 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+  }
+  
+  header {
+    background:linear-gradient(180deg, #73809786 0%, #e4cbef 100%);
+    color: #000000;
+    padding: 1rem;
+    text-align: center;
+    font-size: 24px;
+  }
+  
+  main {
+    padding: 2rem;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+  
+  .event {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin: 1rem;
+    width: 300px;
+    text-align: left;
+    transition: transform 0.3s ease-in-out;
+  }
+  .event-card{
+    width: 300px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 15px;
+  }
+  /* .img_card{
+    background-color:black;
+    opacity:10%;
+  
+  } */
+  .img_card img{
+    height:220px;
+    width:100%;
+    background-size: cover;
+  }
+  .card-content h2{
+    font-size: 25px;
+  }
+  .card-content p{
+    font-size: 15px;
+  }
+  .card-time{
+    display: flex;
+    justify-content: space-between;
+  }
+  .img_test {
+    background-color: yellow;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .img_test img {
+    width: 20px;
+    height: 20px;
+  }
+  .Location {
+    display: flex;
+    align-items: center;
+    gap:5px;
+  
+    /* height: 20px; */
+  }
+  
+  .Location img{
+    width: 20px;
+    height: 20px;
+  }
+  
+  
+  .event:hover {
+    transform: scale(1.05);
+    
+  }
+  
+  h2 {
+    color: #333;
+    font-size: 20px;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: #000000;
+    font-size: 14px;
+    margin-bottom: 0.1rem;
+  }
+  
+  footer {
+    background:linear-gradient(180deg, #73809786 0%, #e4cbef 100%);
+    color: #000000;
+    text-align: center;
+    padding: 1rem;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    font-size: 14px;
+  }

@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+.carousel {
+  display: flex; /* Display items in a horizontal row */
+  overflow: hidden;
+  width: 150%;
+  max-width: 800px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-item {
+  border-radius: 15px;
+  overflow: hidden;
+  flex: 0 0 auto; /* Allow items to shrink or grow as needed */
+  margin-right: 10px; /* Adjust spacing between items */
+}
+
+.carousel-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 15px;
+  filter: brightness(70%) blur(5px);
+  transition: filter 0.3s ease-in-out;
+}
+
+.carousel-item:hover img {
+  filter: brightness(100%) blur(0);
+}
