@@ -1,79 +1,96 @@
 from django.db import models
-
-# Create your models here.
 from django.contrib.auth.models import User
-from myapp.models import Product
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
-import datetime
+from django.urls import reverse
+from django .contrib.auth.forms import UserChangeForm
+# from django.contrib.auth.models import AbstractUser, Group, Permission
 
-
-class ShippingAddress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    shipping_full_name = models.CharField(max_length=255)
-    shipping_email = models.CharField(max_length=255)
-    shipping_address1 = models.CharField(max_length=255)
-    shipping_address2 = models.CharField(max_length=255, null=True, blank=True)
-    shipping_city = models.CharField(max_length=255)
-    shipping_state = models.CharField(max_length=255, null=True, blank=True)
-    shipping_zipcode = models.CharField(max_length=255, null=True, blank=True)
-    shipping_country = models.CharField(max_length=255)
-
-
-    #don't pluarize address
-    class Meta:
-        verbose_name_plural = "Shipping Address"
-
-    def __str__(self):
-        return f'Shipping Address - {str(self.id)}'
-    
-
-
-def  create_shipping(sender, instance, created, **kwargs):
-    if created:
-        user_shipping = ShippingAddress(user=instance)
-        user_shipping.save()
-# automate the shipping thing
-post_save.connect(create_shipping, sender=User)
+from django.db import models
+from django.utils import timezone
 
     
-# create order model
-class Order(models.Model):
-    #foreign.key
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    full_name = models.CharField(max_length=250)
-    email = models.EmailField(max_length=250)
-    shipping_address = models.TextField(max_length=15000)
-    amount_paid = models.DecimalField(max_digits=7, decimal_places=2)
-    date_ordered = models.DateTimeField(auto_now_add=True)
-    shipped = models.BooleanField(default=False)
-    date_shipped = models.DateTimeField(blank=True, null=True)
+def __str__(self):
+        return self.title
+
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    author = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    category = models.CharField(max_length=50)
+    section = models.CharField(
+        max_length=50,
+        choices=[
+            ('most_popular', 'Most Popular'),
+            ('best_sellers', 'Best Sellers'),
+            ('weekly_best_sellers', 'Weekly Best Sellers')
+        ],
+        default='most_popular'  # Provide a default value here
+    )
+    description = models.CharField(max_length=5000)
+    image = models.ImageField(upload_to='uploads/product/')
 
     def __str__(self):
-        return f'Order - {str(self.id)}'
+        return self.name
+
+class UpdateUserForm(UserChangeForm):
+        user = models.OneToOneField(User,null=True,on_delete=models.CASCADE)
+        bio= models.TextField()
+def __str__(self):
+        return str(self.user)
+
+
+class Category(models.Model):
+        name = models.CharField(max_length=50,unique=True)
+def __str__(self):
+        return self.name
+
+class Event(models.Model):
+    title = models.CharField(max_length=200)
+    date = models.DateField()
+    start_time = models.TimeField(default='00:00:00')
+    end_time = models.TimeField()
+    location = models.CharField(max_length=200)
+    description = models.TextField()
+    image = models.ImageField(upload_to='uploads/events/')
+
+    def __str__(self):
+        return self.title
     
-# auto add shipping date
-@receiver(pre_save, sender=Order)
-def set_shipped_on_update(sender, instance, **kwargs):
-    if instance.pk:
-        now = datetime.datetime.now()
-        obj = sender._default_manager.get(pk=instance.pk)
-        if instance.shipped and not obj.shipped:
-            instance.date_shipped = now
 
-
-
-
-# create order.items.model
-class OrderItem(models.Model):
-    #f.k
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-
-    quantity = models.PositiveBigIntegerField(default=1)
-    price = models.DecimalField(max_digits=7, decimal_places=2)
-
+#contact   
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Order Item - {str(self.id)}'
+        return f'Message from {self.name}'
+    
+
+#Blog
+class BlogPost(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+    ]
+    
+    title = models.CharField(max_length=250)
+    author = models.CharField(max_length=100)
+    content = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    approved = models.BooleanField(default=False)
+    feature = models.CharField(
+        max_length=50,
+        choices=[
+            ('bookReview', 'Book Review'),
+            ('authorSpotlight', 'Author Spotlight'),
+            ('childrensCorner', "Children's Corner"),
+            ('latest', 'Latest'),
+            ('userReview', 'User Review')
+        ],
+        default='bookReview'
+    )
+
+    def __str__(self):
+        return self.title

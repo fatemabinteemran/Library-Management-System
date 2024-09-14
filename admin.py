@@ -1,26 +1,16 @@
+#myapp_admin
 from django.contrib import admin
-from .models import ShippingAddress,Order,OrderItem
-from django.contrib.auth.models import User
-# Register your models here.
+from .models import Product,Category,Event,ContactMessage,BlogPost
+from django.conf import settings
+from django.urls import path
 
-admin.site.register(ShippingAddress)
-admin.site.register(Order)
-admin.site.register(OrderItem)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'message', 'created_at')
+    search_fields = ('name', 'email')
+    actions = ['send_response']
 
-# create an OrderItem inline
-class OrderItemInline(admin.StackedInline):
-    model = OrderItem
-    extra = 0
-     
-# extend our order model
-class OrderAdmin(admin.ModelAdmin):
-    model = Order
-    readonly_fields = ["date_ordered"]
-    fields = ["user", "full_name", "email", "shipping_address", "amount_paid", "date_ordered", "shipped", "date_shipped"]
-    inlines = [OrderItemInline]
-
-# Unregister Order model
-admin.site.unregister(Order)
-
-# Reregister our Order and OrderAdmin
-admin.site.register(Order, OrderAdmin)
+admin.site.register(Product)
+admin.site.register(Category)
+admin.site.register(Event)
+admin.site.register(ContactMessage, ContactMessageAdmin)
+admin.site.register(BlogPost)

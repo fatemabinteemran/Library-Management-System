@@ -1,164 +1,213 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from cart.cart import Cart
-from .forms import ShippingForm, PaymentForm
-from .models import ShippingAddress, Order, OrderItem
-from django.contrib.auth.models import User
-from myapp.models import Product
+from django.shortcuts import render, redirect,HttpResponse
+from .models import Product, Category,Event,ContactMessage
 from django.urls import reverse
+from django.contrib.auth import authenticate,logout
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.models import User
+from django.db.models import Q
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
+from .models import BlogPost
+from .forms import BlogPostForm
 
-def orders(request, pk):
-    if request.user.is_authenticated and request.user.is_superuser:
-        # get the order
-        order = Order.objects.get(id=pk)
-        # get order items
-        items = OrderItem.objects.filter(order=pk)
-
-        return render(request, 'payment/orders.html', {"order":order, "items":items})
-    else:
-        messages.error(request, "Access Denied!!")
-        return redirect('mainpage')
 
 
-def not_shipped_dash(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        orders = Order.objects.filter(shipped=False)
-        return render(request, "payment/not_shipped_dash.html", {"orders": orders})
-    else:
-        messages.error(request, "Access Denied!!")
-        return redirect('mainpage')
 
-def shipped_dash(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        orders = Order.objects.filter(shipped=True)
-        return render(request, "payment/shipped_dash.html", {"orders": orders})
-    else:
-        messages.error(request, "Access Denied!!")
-        return redirect('mainpage')
+def home(request):   
+    return render(request, 'home.html')
 
-def process_order(request):
-    if not request.user.is_authenticated:
-        messages.error(request, "Access Denied")
-        return redirect('home')
+def AboutUs(request):
+    return render(request, 'AboutUs.html')
 
+def Book_Discription(request):
+    return render(request, 'Book_Discription.html')
+
+def Contact(request):
+    return render(request, 'Contact.html')
+
+def event(request):
+    return render(request, 'event.html')
+
+def Blog(request):
+    return render(request, 'Blog.html')
+
+def BookGenre(request):
+    return render(request, 'BookGenre.html')
+
+def newpass(request):
+    return render(request, 'new pass.html')
+
+#IMPORTSNT
+
+def SignUp(request):
     if request.method == 'POST':
-        cart = Cart(request)
-        cart_products = cart.get_book()
-        quantities = cart.get_quants()
-        totals = cart.total()
+        username = request.POST['username']
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        email = request.POST['email']
+        password = request.POST['password']
+        confirm_password = request.POST['confirm_password']
 
-        payment_form = PaymentForm(request.POST or None)
-        my_shipping = request.session.get('my_shipping')
+        if password != confirm_password:
+            return HttpResponse("Your password and confirm password are not the same")
+        else:
+            data = User.objects.create_user(first_name=first_name, last_name=last_name, email=email, username=username, password=password)
+            data.save()
+            return redirect('login')
 
-        if my_shipping:
-            full_name = my_shipping['shipping_full_name']
-            email = my_shipping['shipping_email']
-            shipping_address = (
-                f"{my_shipping['shipping_address1']}\n"
-                f"{my_shipping['shipping_address2']}\n"
-                f"{my_shipping['shipping_city']}\n"
-                f"{my_shipping['shipping_state']}\n"
-                f"{my_shipping['shipping_zipcode']}\n"
-                f"{my_shipping['shipping_country']}\n"
-            )
-            amount_paid = totals
+    return render(request, 'SignUp.html')
 
-            create_order = Order(
-                user=request.user if request.user.is_authenticated else None,
-                full_name=full_name,
-                email=email,
-                shipping_address=shipping_address,
-                amount_paid=amount_paid
-            )
-            create_order.save()
 
-            for product in cart_products:
-                product_id = product.id
-                price = product.price
-                quantity = quantities.get(str(product_id), 0)
-                if quantity > 0:
-                    create_order_item = OrderItem(
-                        order=create_order,
-                        product=product,
-                        user=request.user if request.user.is_authenticated else None,
-                        quantity=quantity,
-                        price=price
-                    )
-                    create_order_item.save()
 
-            # Empty the cart after placing the order
-            cart.clear()
+def custom_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            else:
+                return redirect(reverse('mainpage'))
+        else:
+            return HttpResponse("Username or Password is incorrect!!!")
 
-            messages.success(request, "Order Placed!!")
-            return redirect('mainpage')
+    return render(request, 'login.html')
 
-        messages.error(request, "Failed to process order. Please try again.")
-        return redirect('payment:checkout')
 
-    return redirect('payment:checkout')  # Redirect in case of GET request or other scenarios
+def logout_user(request):
+    logout(request)
+    messages.success(request, ("You have been LOGGED OUT!"))
+    #return redirect('home')
+    return redirect(reverse('home'))
 
-def billing_info(request):
-    if not request.user.is_authenticated:
-        messages.error(request, "Access Denied")
-        return redirect('home')
 
-    cart = Cart(request)
-    cart_products = cart.get_book()
-    quantities = cart.get_quants()
-    totals = cart.total()
+def forget(request):
+    return render(request, 'forget.html')
 
-    shipping_form = ShippingForm(request.POST or None)
+def saveEnquiry(request):
+    return render(request,'Contact.html')
 
-    if request.method == 'POST' and shipping_form.is_valid():
-        my_shipping = request.POST.dict()
-        request.session['my_shipping'] = my_shipping
-        billing_form = PaymentForm()
-        return render(request, "payment/billing_info.html", {
-            "cart_products": cart_products,
-            "quantities": quantities,
-            "totals": totals,
-            "shipping_info": request.POST,
-            "billing_form": billing_form,
-        })
 
-    return render(request, "payment/billing_info.html", {
-        "cart_products": cart_products,
-        "quantities": quantities,
-        "totals": totals,
-        "shipping_form": shipping_form,
-    })
+def mainpage(request):
+    products = Product.objects.all()  # Get all products or filter as needed
+    return render(request, 'mainpage.html', {'products': products})
 
-def checkout(request):
-    cart = Cart(request)
-    cart_products = cart.get_book()
-    quantities = cart.get_quants()
-    totals = cart.total()
+@login_required
+def product_detail(request,pk):
+    product = Product.objects.get(id=pk)
+    return render(request,'product.html',{'product':product})
 
-    if request.user.is_authenticated:
-        try:
-            shipping_user = ShippingAddress.objects.get(user=request.user)
-            shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
-        except ShippingAddress.DoesNotExist:
-            shipping_form = ShippingForm(request.POST or None)
 
-        if request.method == "POST" and shipping_form.is_valid():
-            shipping_address = shipping_form.save(commit=False)
-            shipping_address.user = request.user
-            shipping_address.save()
-            messages.success(request, "Shipping address saved successfully!")
-            return redirect('payment:checkout')
+def category_view(request, category_name):
+    products = Product.objects.filter(category=category_name)
+    return render(request, 'category.html', {'products': products, 'category_name': category_name})
+
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = 'userpro.html'
+
+class CustomLoginView(LoginView):
+    template_name = 'login.html'
+
+def explore(request):
+    most_popular_books = Product.objects.filter(section='most_popular')
+    best_sellers = Product.objects.filter(section='best_sellers')
+    weekly_best_sellers = Product.objects.filter(section='weekly_best_sellers')
+
+    context = {
+        'most_popular_books': most_popular_books,
+        'best_sellers': best_sellers,
+        'weekly_best_sellers': weekly_best_sellers,
+    }
+
+    return render(request, 'explore.html', context)
+
+def products_by_section(request, section_name):
+    products = Product.objects.filter(section=section_name)
+    return render(request, 'explore.html', {'products': products, 'section_name': section_name})
+
+def userpro(request):
+    return render(request, 'userpro.html')
+
+
+def event_list(request):
+    events = Event.objects.all()
+    return render(request, 'event.html', {'events': events})
+
+def search(request):
+    query = request.GET.get('query', '')
+    results = []
+    if query:
+        results = Product.objects.filter(
+            Q(name__icontains=query) |
+            Q(author__icontains=query)
+        )
+    return render(request, 'search_results.html', {'results': results, 'query': query})
+
+#contact function
+def save_enquiry(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+        
+        # Save the message to the database
+        ContactMessage.objects.create(name=name, email=email, message=message)
+        
+        messages.success(request, 'Your message has been sent successfully!')
+        return redirect('contact')  # Replace 'contact' with the name of your contact page URL pattern
+    return render(request, 'Contact.html')
+
+#blog's fucion
+def blog_page(request):
+    if request.method == 'POST':
+        form = BlogPostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.approved = False 
+            post.save()
+            return redirect('blog_page')
     else:
-        shipping_form = ShippingForm(request.POST or None)
-        if request.method == "POST" and shipping_form.is_valid():
-            # Process the guest checkout form if necessary
-            pass
+        form = BlogPostForm()
 
-    return render(request, "payment/checkout.html", {
-        "cart_products": cart_products,
-        "quantities": quantities,
-        "totals": totals,
-        "shipping_form": shipping_form
-    })
+    featured_posts = {
+        'bookReview': BlogPost.objects.filter(approved=True, feature='bookReview').order_by('-created_at'),
+        'authorSpotlight': BlogPost.objects.filter(approved=True, feature='authorSpotlight').order_by('-created_at'),
+        'childrensCorner': BlogPost.objects.filter(approved=True, feature='childrensCorner').order_by('-created_at'),
+        'latest': BlogPost.objects.filter(approved=True, feature='latest').order_by('-created_at'),
+        'userReview': BlogPost.objects.filter(approved=True, feature='userReview').order_by('-created_at'),
+    }
 
-def payment_success(request):
-    return render(request, "payment/payment_success.html", {})
+    context = {
+        'form': form,
+        'featured_posts': featured_posts
+    }
+    return render(request, 'Blog.html', context)
+
+def set_password(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        new_password = request.POST['new_password']
+        confirm_password = request.POST['confirm_password']
+
+        if new_password != confirm_password:
+            messages.error(request, "New passwords do not match.")
+            return redirect('set_password')
+
+        try:
+            user = User.objects.get(username=username)
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, "Password has been set successfully. You can now log in with your new password.")
+            return redirect('login')
+        except User.DoesNotExist:
+            messages.error(request, "Username does not exist.")
+            return redirect('set_password')
+
+    return render(request, 'set_password.html')
